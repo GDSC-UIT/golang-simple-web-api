@@ -1,6 +1,7 @@
 package main
 
 import (
+	"golang-simple-web-api/component/appconfig"
 	"golang-simple-web-api/component/appctx"
 	"golang-simple-web-api/middleware"
 	"time"
@@ -15,19 +16,6 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
-
-type appConfig struct {
-	Port       string
-	Env        string
-	StaticPath string
-
-	DBUsername string
-	DBPassword string
-	DBHost     string
-	DBDatabase string
-
-	SecretKey string
-}
 
 func main() {
 	cfg, err := loadConfig()
@@ -66,13 +54,13 @@ func main() {
 	}
 }
 
-func loadConfig() (*appConfig, error) {
+func loadConfig() (*appconfig.AppConfig, error) {
 	env, err := godotenv.Read()
 	if err != nil {
 		log.Fatalln("Error when loading .env", err)
 	}
 
-	return &appConfig{
+	return &appconfig.AppConfig{
 		Port:       env["PORT"],
 		Env:        env["GO_ENV"],
 		StaticPath: env["STATIC_PATH"],
@@ -84,9 +72,9 @@ func loadConfig() (*appConfig, error) {
 	}, nil
 }
 
-func connectDatabaseWithRetryIn30s(cfg *appConfig) (*gorm.DB, error) {
+func connectDatabaseWithRetryIn30s(cfg *appconfig.AppConfig) (*gorm.DB, error) {
 	const timeRetry = 30 * time.Second
-	var connectDatabase = func(cfg *appConfig) (*gorm.DB, error) {
+	var connectDatabase = func(cfg *appconfig.AppConfig) (*gorm.DB, error) {
 		dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", cfg.DBUsername, cfg.DBPassword, cfg.DBHost, cfg.DBDatabase)
 		db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
