@@ -24,7 +24,7 @@ func main() {
 	}
 
 	fmt.Println("Connecting to database...")
-	db, err := connectDatabaseWithRetryIn30s(cfg)
+	db, err := connectDatabaseWithRetryIn20s(cfg)
 	if err != nil {
 		log.Fatalln("Error when connecting to database:", err)
 	}
@@ -36,7 +36,7 @@ func main() {
 	appCtx := appctx.NewAppContext(db, cfg.SecretKey)
 
 	r := gin.Default()
-	r.Use(CORSMiddleware())
+	r.Use(middleware.CORS())
 	r.Use(middleware.Recover(appCtx))
 
 	v1 := r.Group("/v1")
@@ -72,8 +72,8 @@ func loadConfig() (*appconfig.AppConfig, error) {
 	}, nil
 }
 
-func connectDatabaseWithRetryIn30s(cfg *appconfig.AppConfig) (*gorm.DB, error) {
-	const timeRetry = 30 * time.Second
+func connectDatabaseWithRetryIn20s(cfg *appconfig.AppConfig) (*gorm.DB, error) {
+	const timeRetry = 20 * time.Second
 	var connectDatabase = func(cfg *appconfig.AppConfig) (*gorm.DB, error) {
 		dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", cfg.DBUsername, cfg.DBPassword, cfg.DBHost, cfg.DBDatabase)
 		db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -97,22 +97,5 @@ func connectDatabaseWithRetryIn30s(cfg *appconfig.AppConfig) (*gorm.DB, error) {
 		time.Sleep(time.Second)
 	}
 
-	return nil, fmt.Errorf("failed to connect to database after retrying for 30 seconds: %w", err)
-}
-
-func CORSMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusNoContent)
-			return
-		}
-
-		c.Next()
-	}
+	return nil, fmt.Errorf("failed to connect to database after retrying for 20 seconds: %w", err)
 }
