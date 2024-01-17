@@ -1,9 +1,8 @@
 package appconfig
 
 type AppConfig struct {
-	Port       string
-	Env        string
-	StaticPath string
+	Port string
+	Env  string
 
 	DBUsername string
 	DBPassword string

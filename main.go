@@ -4,6 +4,7 @@ import (
 	"golang-simple-web-api/component/appconfig"
 	"golang-simple-web-api/component/appctx"
 	"golang-simple-web-api/middleware"
+	userhandler "golang-simple-web-api/modules/user/handler"
 	"time"
 
 	"fmt"
@@ -47,6 +48,13 @@ func main() {
 			})
 			return
 		})
+
+		userGroup := v1.Group("/users")
+		{
+			userGroup.POST("", userhandler.CreateUser(appCtx))
+			userGroup.GET("", userhandler.ListUser(appCtx))
+			userGroup.PATCH("/:id", userhandler.UpdateUser(appCtx))
+		}
 	}
 
 	if err := r.Run(fmt.Sprintf(":%s", cfg.Port)); err != nil {
@@ -63,12 +71,10 @@ func loadConfig() (*appconfig.AppConfig, error) {
 	return &appconfig.AppConfig{
 		Port:       env["PORT"],
 		Env:        env["GO_ENV"],
-		StaticPath: env["STATIC_PATH"],
 		DBUsername: env["DB_USERNAME"],
 		DBPassword: env["DB_PASSWORD"],
 		DBHost:     env["DB_HOST"],
 		DBDatabase: env["DB_DATABASE"],
-		SecretKey:  env["SECRET_KEY"],
 	}, nil
 }
 
